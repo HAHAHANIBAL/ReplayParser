@@ -19,7 +19,9 @@ hero_rad=open('hero_rad.txt','w')
 hero_dire=open('hero_dire.txt','w')
 hero_list_rad=[]
 hero_list_dire=[]
-
+glyph_dire_usage=0
+glyph_rad_usage=0
+glyph_pat=re.compile(r'.*?\((\d+):\d+\)..Glyph used by (\w+)')
 
 for line in info:
     if "Radiant picks" in line:
@@ -28,6 +30,14 @@ for line in info:
     elif "Dire picks" in line:
         hero_dire.write(str(hero_side.search(line).group(1))+'\n')
         hero_list_rad.append(str(hero_side.search(line).group(1)))
+    i=glyph_pat.search(line)
+    if i!=None:
+        if i.group(2)=='Dire' and int(i.group(1))<16:
+            glyph_dire_usage=glyph_dire_usage+1
+        elif i.group(2)=='Radiant' and int(i.group(1))<16:
+            glyph_rad_usage=glyph_rad_usage+1
+
+
 
 hero_rad.close()
 hero_dire.close()
@@ -117,13 +127,20 @@ ward_kills_rad=0
 hero_kills_rad=0
 hero_kills_dire=0
 
-valid_kills_hero=re.compile(r'\d+:\d+.\((\d+):\d+\)..(\w+).*?dies..Killer:.(\w+)')
+valid_kills_hero=re.compile(r'\d+:\d+.\((\d+):(\d+)\)..(\w+).*?dies..Killer:.(\w+)')
 rad_kill_time=[]
 dire_kill_time=[]
+
+smoke_pat=re.compile(r'.*?\((\d+):(\d+)\)\..(\w+).*?gets the Smoke of Deceit Buff')
+smoke_rad_time=0
+smoke_dire_time=0
+smoke_rad=[]
+smoke_dire=[]
 with open("replay_15min.txt","rb") as fin:
     for line in fin:
         i=valid_kills.search(line)
         j=valid_kills_hero.search(line)
+        k=smoke_pat.search(line)
         if i!=None:
             if i.group(1) in neutrals_index and i.group(2) in hero_list_rad:
                 neutral_kills_rad=neutral_kills_rad+1
@@ -134,25 +151,36 @@ with open("replay_15min.txt","rb") as fin:
             elif i.group(1) == "Observer Ward" and i.group(2) in hero_list_rad:
                 ward_kills_rad=ward_kills_rad+1
         if j!=None:
-            if j.group(2) in hero_list_dire:
+            if j.group(3) in hero_list_dire:
                 hero_kills_rad=hero_kills_rad+1
-                rad_kill_time.append(int(j.group(1)))
-            elif j.group(2) in hero_list_rad:
+                rad_kill_time.append(int(j.group(1))*60+int(j.group(2)))
+            elif j.group(3) in hero_list_rad:
                 hero_kills_dire=hero_kills_dire+1
-                dire_kill_time.append(int(j.group(1)))
+                dire_kill_time.append(int(j.group(1))*60+int(j.group(2)))
+        if k!=None:
+            if k.group(3) in hero_list_dire:
+                smoke_dire.append(int(k.group(1))*60+int(k.group(2)))
+            elif k.group(3) in hero_list_rad:
+                smoke_rad.append(int(k.group(1))*60+int(k.group(2)))
 fin.close()
+smoke_counts_dire=len(set(smoke_dire))
+smoke_counts_rad=len(set(smoke_rad))
+smoke_dire_unique_time=list(set(smoke_dire))[0:3]
+smoke_rad_unique_time=list(set(smoke_rad))[0:3]
 
 
 if rad_kill_time[0]<dire_kill_time[0]:
+    first_blood_time=rad_kill_time[0]
     first_blood_rad=1
 else:
+    first_blood_time=dire_kill_time[0]
     first_blood_rad=0
 
 
-ordered_fieldnames = OrderedDict([('Radiant_Hero_Kills',None),('Dire_Hero_Kills',None),('Radiant_FB_Bool',None),('Radiant_Creep_Kills',None),('Dire_Creep_Kills',None),('Radiant_Creep_Denies',None),('Dire_Creep_Denies',None),('Radiant_Tower_Damage',None),('Dire_Tower_Damage',None),('Rad_Neutrals_Farmed',None),('Dire_Neutrals_Farmed',None),('Radiant_Ward_Kills',None),('Dire_Ward_Kills',None),('Rad_Hero_1',None),('Rad_Hero_2',None),('Rad_Hero_3',None),('Rad_Hero_4',None),('Rad_Hero_5',None),('Dire_Hero_1',None),('Dire_Hero_2',None),('Dire_Hero_3',None),('Dire_Hero_4',None),('Dire_Hero_5',None)])
+ordered_fieldnames = OrderedDict([('Radiant_Hero_Kills',None),('Dire_Hero_Kills',None),('Radiant_FB_Bool',None),('Radiant_Creep_Kills',None),('Dire_Creep_Kills',None),('Radiant_Creep_Denies',None),('Dire_Creep_Denies',None),('Smoke_Counts_Radiant',None),('Smoke_Counts_Dire',None),('Glyph_Usage_Radiant',None),('Glyph_Usage_Dire',None),('Radiant_Tower_Damage',None),('Dire_Tower_Damage',None),('Rad_Neutrals_Farmed',None),('Dire_Neutrals_Farmed',None),('Radiant_Ward_Kills',None),('Dire_Ward_Kills',None),('Rad_Hero_1',None),('Rad_Hero_2',None),('Rad_Hero_3',None),('Rad_Hero_4',None),('Rad_Hero_5',None),('Dire_Hero_1',None),('Dire_Hero_2',None),('Dire_Hero_3',None),('Dire_Hero_4',None),('Dire_Hero_5',None)])
 with open("count.csv","wb") as fou:
     stat=csv.DictWriter(fou,fieldnames=ordered_fieldnames)
     stat.writeheader()
     stat=csv.writer(fou)
-    stat.writerow([hero_kills_rad,hero_kills_dire,first_blood_rad,count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,count_creep_dire_denies,count_tower_dmg_rad,count_tower_dmg_dire,neutral_kills_rad,neutral_kills_dire,ward_kills_rad,ward_kills_dire,hero_rad_index[0],hero_rad_index[1],hero_rad_index[2],hero_rad_index[3],hero_rad_index[4],hero_dire_index[0],hero_dire_index[1],hero_dire_index[2],hero_dire_index[3],hero_dire_index[4]])
+    stat.writerow([hero_kills_rad,hero_kills_dire,first_blood_rad,count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,count_creep_dire_denies,smoke_counts_rad,smoke_counts_dire,glyph_rad_usage,glyph_dire_usage,count_tower_dmg_rad,count_tower_dmg_dire,neutral_kills_rad,neutral_kills_dire,ward_kills_rad,ward_kills_dire,hero_rad_index[0],hero_rad_index[1],hero_rad_index[2],hero_rad_index[3],hero_rad_index[4],hero_dire_index[0],hero_dire_index[1],hero_dire_index[2],hero_dire_index[3],hero_dire_index[4]])
 
