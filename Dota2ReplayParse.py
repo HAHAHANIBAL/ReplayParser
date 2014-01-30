@@ -20,6 +20,7 @@ hero_dire=open('hero_dire.txt','w')
 hero_list_rad=[]
 hero_list_dire=[]
 
+
 for line in info:
     if "Radiant picks" in line:
         hero_rad.write(str(hero_side.search(line).group(1))+'\n')
@@ -31,6 +32,24 @@ for line in info:
 hero_rad.close()
 hero_dire.close()
 #print hero_list_rad
+hero_rad_index=[]
+hero_dire_index=[]
+with open('hero_index.txt','rb') as fin:
+    for line in fin:
+        if re.compile(r'(\w+).*,(\d+)').search(line).group(1) in hero_list_rad:
+            hero_rad_index.append(re.compile(r'(\w+).*,(\d+)').search(line).group(2))
+        elif re.compile(r'(\w+).*,(\d+)').search(line).group(1) in hero_list_dire:
+            hero_dire_index.append(re.compile(r'(\w+).*,(\d+)').search(line).group(2))
+
+fin.close()
+
+#print hero_rad_index
+neutrals_index=[]
+fin=open('neutrals_index.txt','rb')
+for line in fin:
+    neutrals_index.append(line.strip())
+fin.close()
+
 
 rep=open(path,'rb')
 rep_15=open('replay_15min.txt','w')
@@ -61,6 +80,8 @@ tower_dmg=re.compile(r'deals.(\d+).damage.to.(\w+).(.*?).Tier.(\d+).Tower.*?Owne
 count_creep_dire_kills=0
 count_creep_rad_kills=0
 
+
+
 with open("replay_15min.txt","rb") as fin:
     for line in fin:
         i=tower_dmg.search(line)
@@ -84,12 +105,54 @@ with open("replay_15min.txt","rb") as fin:
 
 count_creep_rad_denies=count_creep_dire-count_creep_dire_kills
 count_creep_dire_denies=count_creep_rad-count_creep_rad_kills
+fin.close()
 
 
-ordered_fieldnames = OrderedDict([('Radiant_Creep_Kills',None),('Dire_Creep_Kills',None),('Radiant_Creep_Denies',None),('Dire_Creep_Denies',None),('Radiant_Tower_Damage',None),('Dire_Tower_Damage',None)])
+valid_kills=re.compile(r'\d+:\d+.\(\d+:\d+\)..(.*?).dies..Killer:.(\w+)')
+
+neutral_kills_rad=0
+neutral_kills_dire=0
+ward_kills_dire=0
+ward_kills_rad=0
+hero_kills_rad=0
+hero_kills_dire=0
+
+valid_kills_hero=re.compile(r'\d+:\d+.\((\d+):\d+\)..(\w+).*?dies..Killer:.(\w+)')
+rad_kill_time=[]
+dire_kill_time=[]
+with open("replay_15min.txt","rb") as fin:
+    for line in fin:
+        i=valid_kills.search(line)
+        j=valid_kills_hero.search(line)
+        if i!=None:
+            if i.group(1) in neutrals_index and i.group(2) in hero_list_rad:
+                neutral_kills_rad=neutral_kills_rad+1
+            elif i.group(1) in neutrals_index and i.group(2) in hero_list_dire:
+                neutral_kills_dire=neutral_kills_dire+1
+            elif i.group(1) == "Observer Ward" and i.group(2) in hero_list_dire:
+                ward_kills_dire=ward_kills_dire+1
+            elif i.group(1) == "Observer Ward" and i.group(2) in hero_list_rad:
+                ward_kills_rad=ward_kills_rad+1
+        if j!=None:
+            if j.group(2) in hero_list_dire:
+                hero_kills_rad=hero_kills_rad+1
+                rad_kill_time.append(int(j.group(1)))
+            elif j.group(2) in hero_list_rad:
+                hero_kills_dire=hero_kills_dire+1
+                dire_kill_time.append(int(j.group(1)))
+fin.close()
+
+
+if rad_kill_time[0]<dire_kill_time[0]:
+    first_blood_rad=1
+else:
+    first_blood_rad=0
+
+
+ordered_fieldnames = OrderedDict([('Radiant_Hero_Kills',None),('Dire_Hero_Kills',None),('Radiant_FB_Bool',None),('Radiant_Creep_Kills',None),('Dire_Creep_Kills',None),('Radiant_Creep_Denies',None),('Dire_Creep_Denies',None),('Radiant_Tower_Damage',None),('Dire_Tower_Damage',None),('Rad_Neutrals_Farmed',None),('Dire_Neutrals_Farmed',None),('Radiant_Ward_Kills',None),('Dire_Ward_Kills',None),('Rad_Hero_1',None),('Rad_Hero_2',None),('Rad_Hero_3',None),('Rad_Hero_4',None),('Rad_Hero_5',None),('Dire_Hero_1',None),('Dire_Hero_2',None),('Dire_Hero_3',None),('Dire_Hero_4',None),('Dire_Hero_5',None)])
 with open("count.csv","wb") as fou:
     stat=csv.DictWriter(fou,fieldnames=ordered_fieldnames)
     stat.writeheader()
     stat=csv.writer(fou)
-    stat.writerow([count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,count_creep_dire_denies,count_tower_dmg_rad,count_tower_dmg_dire])
+    stat.writerow([hero_kills_rad,hero_kills_dire,first_blood_rad,count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,count_creep_dire_denies,count_tower_dmg_rad,count_tower_dmg_dire,neutral_kills_rad,neutral_kills_dire,ward_kills_rad,ward_kills_dire,hero_rad_index[0],hero_rad_index[1],hero_rad_index[2],hero_rad_index[3],hero_rad_index[4],hero_dire_index[0],hero_dire_index[1],hero_dire_index[2],hero_dire_index[3],hero_dire_index[4]])
 

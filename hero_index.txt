@@ -1,0 +1,100 @@
+Alchemist,73
+Ancient Apparition,68
+Anti-Mage,1
+Axe,2
+Bane,3
+Base Hero,0
+Batrider,65
+Beastmaster,38
+Bloodseeker,4
+Bounty Hunter,62
+Brewmaster,78
+Bristleback,99
+Broodmother,61
+Centaur Warrunner,96
+Chaos Knight,81
+Chen,66
+Clinkz,56
+Crystal Maiden,5
+Dark Seer,55
+Dazzle,50
+Death Prophet,43
+Disruptor,87
+Doom Bringer,69
+Dragon Knight,49
+Drow Ranger,6
+Earthshaker,7
+Enchantress,58
+Enigma,33
+Faceless Void,41
+Nature's Prophet,53
+Gyrocopter,72
+Huskar,59
+Invoker,74
+Jakiro,64
+Juggernaut,8
+Keeper of the Light,90
+Kunkka,23
+Leshrac,52
+Lich,31
+Lifestealer,54
+Lina,25
+Lion,26
+Lone Druid,80
+Luna,48
+Lycanthrope,77
+Magnus,97
+Medusa,94
+Meepo,82
+Mirana,9
+Morphling,10
+Necrolyte,36
+Naga Siren,89
+Shadow Fiend,11
+Night Stalker,60
+Nyx Assassin,88
+Outworld Destroyer,76
+Ogre Magi,84
+Omniknight,57
+Phantom Assassin,44
+Phantom Lancer,12
+Puck,13
+Pudge,14
+Pugna,45
+Queen of Pain,39
+Clockwerk,51
+Razor,15
+Riki,32
+Rubick,86
+Sand King,16
+Shadow Demon,79
+Shadow Shaman,27
+Timbersaw,98
+Silencer,75
+Skeleton King,42
+Slardar,28
+Slark,93
+Sniper,35
+Spectre,67
+Spirit Breaker,71
+Storm Spirit,17
+Sven,18
+Templar Assassin,46
+Tidehunter,29
+Tinker,34
+Tiny,19
+Treant Protector,83
+Troll Warlord,95
+Tusk,100
+Undying,85
+Ursa,70
+Vengeful Spirit,20
+Venomancer,40
+Viper,47
+Visage,92
+Warlock,37
+Weaver,63
+Windrunner,21
+Wisp,91
+Witch Doctor,30
+Zeus,22
