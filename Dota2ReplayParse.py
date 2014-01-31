@@ -11,7 +11,11 @@ from itertools import izip_longest
 
 master = Tk()
 master.wm_title("DOTA2 Quant")
-canvas = Canvas(master, width=250, height=100)
+
+photo=PhotoImage(file='DOTA2_header.gif')
+
+canvas = Canvas(master,width=350, height=200)
+canvas.create_image(175,90,image=photo)
 canvas.pack()
 e = Entry(master,width=15)
 w = Label(master, text="Please input your match ID:")
