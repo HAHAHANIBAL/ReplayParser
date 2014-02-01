@@ -11,6 +11,7 @@ from itertools import izip_longest
 from matplotlib import pyplot
 import matplotlib as mpl
 
+#GUI Added for human
 master=Tk()
 master.wm_title("DOTA2 Quant")
 
@@ -41,7 +42,7 @@ stat.writeheader()
 stat=csv.writer(fout)
 
 
-
+#   main function
 def callback():
     matchid=int(e.get())
 #   for matchid in range(475880380,475880380):
@@ -91,6 +92,7 @@ def callback():
 
 #   hero_dire_dict = dict(izip_longest(*[iter(hero_dire_index)] * 2, fillvalue=""))
 #   Hero list is opposite
+#   In the final release this lists would be reduced to one dictionary object, now it's just for reference because there are too many attributes to track
     hero_dire_dict={};hero_rad_dict={}
     hero_dire_lh={};hero_rad_lh={}
     hero_dire_deny={};hero_rad_deny={}
@@ -108,6 +110,7 @@ def callback():
     hero_dire_neutral={};hero_rad_neutral={}
 
     with open('hero_rad.txt','rb') as fin:
+#   This will be reduced as well    
         for line in fin:
             hero_dire_dict[line.strip()]=0
             hero_dire_lh[line.strip()]=0;hero_dire_deny[line.strip()]=0
@@ -132,7 +135,7 @@ def callback():
     fin.close()
 
 
-
+#   Counting neutral kills, forest exploitation, next updates would be attached money value to neutral creatures killed
     #print hero_rad_index
     neutrals_index=[]
     fin=open('neutrals_index.txt','rb')
@@ -159,7 +162,7 @@ def callback():
     count_creep_dire=0
     count_tower_dmg_rad=0
     count_tower_dmg_dire=0
-
+#   Can further divde this to ranged and melle creep kills, but at this stage is not neccesary
     last_hit_dire=re.compile(r'.*?(Radiant Creep dies)\..*?:.(\w+)')
     last_hit_rad=re.compile(r'.*?(Dire Creep dies)\..*?:.(\w+).')
     tower_dmg=re.compile(r'deals.(\d+).damage.to.(\w+).(.*?).Tier.(\d+).Tower.*?Owner:.(\w+)')
@@ -203,7 +206,7 @@ def callback():
 
     fin.close()
 
-
+#   This regex will be tracking smoke pop counts, KDA for players and ward/sentry ward kills, some data will be used to estimate the players' participation score
     valid_kills=re.compile(r'\d+:\d+.\(\d+:\d+\)..(.*?).dies..Killer:.(\w+)')
 
     neutral_kills_rad=0;neutral_kills_dire=0
@@ -276,7 +279,7 @@ def callback():
     else:
         first_blood_time=dire_kill_time[0]
         first_blood_rad=0
-
+#   Damage can be further calculated as damage per second (i.e. DPS)
     hero_dps_pat=re.compile(r'\(\d+:\d+\)..(\w+).*?deals.(\d+).*?to.(\w+).*?')
     hero_hps_pat=re.compile(r'\(\d+:\d+\)..(\w+).*?heals.*?(\d+).*?to.(\w+).*?')
     hero_item_heal_pat=re.compile(r'\(\d+:\d+\)..(\w+).*?gets.*?(\w+).Heal')
@@ -299,6 +302,8 @@ def callback():
                 elif n.group(3) in hero_list_rad:
                     hero_rad_heal[n.group(3)]+=int(n.group(2))
             #Healed By using flask/bottle/tango
+            #Healing estimates includes item heals (wand, hod), skill heals (feast) and other heals (flask,bottle,tango)
+            #Again, HPS can be calculated
             if x!=None:
                 if x.group(1) in hero_list_dire and x.group(2)=="Tango":
                     hero_dire_tango[x.group(1)]+=1
@@ -327,6 +332,7 @@ def callback():
 #        key=str(key);val=str(val)
         rad_total_hero_damage+=int(val)
 
+#   Integrate all the stats I think it matters to one text file for both sides
     with open('hero_rad_skills.txt','w') as fou:
         for key,val in hero_rad_lh.items():
             key=str(key);val=str(val)
@@ -348,7 +354,7 @@ def callback():
         dire_total_heal+=hero_dire_total_heal
 
 
-
+#   Added some graph functions to the program, more graphs can be added
     fig = pyplot.figure(figsize=(10,2))
     ratio=float(dire_total_hero_damage)/float(rad_total_hero_damage)
 
@@ -379,12 +385,14 @@ def callback():
     cb2=mpl.colorbar.ColorbarBase(ax2,cmap=cmap,norm=norm2,boundaries=[0]+bounds+[dire_total_hero_damage],extend='both',spacing='propotional',orientation='horizontal')
     cb2.set_label('Dire Hero Damages Dealt')
     pyplot.show()
+    
+#   This is the csv file which will be used for machine learning problem
     stat.writerow([matchid,hero_kills_rad,hero_kills_dire,rad_total_hero_damage,dire_total_hero_damage,rad_total_heal,dire_total_heal,first_blood_rad,count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,count_creep_dire_denies,smoke_counts_rad,smoke_counts_dire,glyph_rad_usage,glyph_dire_usage,count_tower_dmg_rad,count_tower_dmg_dire,neutral_kills_rad,neutral_kills_dire,ward_kills_rad,ward_kills_dire,hero_rad_index[0],hero_rad_index[1],hero_rad_index[2],hero_rad_index[3],hero_rad_index[4],hero_dire_index[0],hero_dire_index[1],hero_dire_index[2],hero_dire_index[3],hero_dire_index[4]])
 #    Generate csv file for dps
 #    w = csv.writer(open("hero_dps.csv", "w"))
 #    for key, val in hero_rad_dict.items():
-#        w.writerow([key, val])
-    return dire_total_hero_damage,rad_total_hero_damage,hero_rad_dict,hero_dire_dict
+#        w.writerow([keye, val])
+
 
 
 def close_window():
