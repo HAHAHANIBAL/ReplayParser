@@ -93,6 +93,7 @@ def callback():
 #   hero_dire_dict = dict(izip_longest(*[iter(hero_dire_index)] * 2, fillvalue=""))
 #   Hero list is opposite
 #   In the final release this lists would be reduced to one dictionary object, now it's just for reference because there are too many attributes to track
+#   This would be created as a class after I finished all other parts 
     hero_dire_dict={};hero_rad_dict={}
     hero_dire_lh={};hero_rad_lh={}
     hero_dire_deny={};hero_rad_deny={}
