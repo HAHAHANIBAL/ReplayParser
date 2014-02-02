@@ -10,8 +10,8 @@ from Tkinter import *
 from itertools import izip_longest
 from matplotlib import pyplot
 import matplotlib as mpl
+import WebAPIInfo
 
-#GUI Added for human
 master=Tk()
 master.wm_title("DOTA2 Quant")
 
@@ -35,18 +35,27 @@ e2.focus_set()
 e.focus_set()
 
 
-ordered_fieldnames = OrderedDict([('Match_ID',None),('Radiant_Hero_Kills',None),('Dire_Hero_Kills',None),('Radiant_Hero_Damages_Dealt',None),('Dire_Hero_Damages_Dealt',None),('Radiant_Hero_Healed',None),('Dire_Hero_Healed',None),('Radiant_FB_Bool',None),('Radiant_Creep_Kills',None),('Dire_Creep_Kills',None),('Radiant_Creep_Denies',None),('Dire_Creep_Denies',None),('Smoke_Counts_Radiant',None),('Smoke_Counts_Dire',None),('Glyph_Usage_Radiant',None),('Glyph_Usage_Dire',None),('Radiant_Tower_Damage',None),('Dire_Tower_Damage',None),('Rad_Neutrals_Farmed',None),('Dire_Neutrals_Farmed',None),('Radiant_Ward_Kills',None),('Dire_Ward_Kills',None),('Rad_Hero_1',None),('Rad_Hero_2',None),('Rad_Hero_3',None),('Rad_Hero_4',None),('Rad_Hero_5',None),('Dire_Hero_1',None),('Dire_Hero_2',None),('Dire_Hero_3',None),('Dire_Hero_4',None),('Dire_Hero_5',None)])
+ordered_fieldnames = OrderedDict([('Match_ID',None),('Match_Duration',None),('Radiant_Win',None),('Radiant_Hero_Kills',None),('Dire_Hero_Kills',None),('Radiant_Hero_Damages_Dealt',None),('Dire_Hero_Damages_Dealt',None),('Radiant_Hero_Healed',None),('Dire_Hero_Healed',None),('Radiant_FB_Bool',None),('Radiant_Creep_Kills',None),('Dire_Creep_Kills',None),('Radiant_Creep_Denies',None),('Dire_Creep_Denies',None),('Smoke_Counts_Radiant',None),('Smoke_Counts_Dire',None),('Glyph_Usage_Radiant',None),('Glyph_Usage_Dire',None),('Radiant_Tower_Damage',None),('Dire_Tower_Damage',None),('Rad_Neutrals_Farmed',None),('Dire_Neutrals_Farmed',None),('Radiant_Ward_Kills',None),('Dire_Ward_Kills',None),('Rad_Hero_1',None),('Rad_Hero_2',None),('Rad_Hero_3',None),('Rad_Hero_4',None),('Rad_Hero_5',None),('Dire_Hero_1',None),('Dire_Hero_2',None),('Dire_Hero_3',None),('Dire_Hero_4',None),('Dire_Hero_5',None)])
 fout=open("count.csv","wb")
 stat=csv.DictWriter(fout,fieldnames=ordered_fieldnames)
 stat.writeheader()
 stat=csv.writer(fout)
 
 
-#   main function
+
 def callback():
     matchid=int(e.get())
 #   for matchid in range(475880380,475880380):
 #   matchid=475880380
+    Fetch_info=WebAPIInfo.getmatch(matchid)
+    banlist=Fetch_info.hero_bans_names
+    #import some other match info from fetching WebAPI function
+    match_duration=Fetch_info.duration
+    radiant_win_bool=Fetch_info.rad_win_bool
+    dire_name=Fetch_info.dire_team
+    rad_name=Fetch_info.rad_team
+    player_info=Fetch_info.player_dict
+
     subprocess.call(['DotaParser.exe','%d.dem' %matchid])
 
     path=os.path.expanduser('c:/Users/moc/PycharmProjects/Game/output/%d.log' %matchid)
@@ -92,8 +101,7 @@ def callback():
 
 #   hero_dire_dict = dict(izip_longest(*[iter(hero_dire_index)] * 2, fillvalue=""))
 #   Hero list is opposite
-#   In the final release this lists would be reduced to one dictionary object, now it's just for reference because there are too many attributes to track
-#   This would be created as a class after I finished all other parts 
+#   Convert into class attribute later
     hero_dire_dict={};hero_rad_dict={}
     hero_dire_lh={};hero_rad_lh={}
     hero_dire_deny={};hero_rad_deny={}
@@ -111,7 +119,6 @@ def callback():
     hero_dire_neutral={};hero_rad_neutral={}
 
     with open('hero_rad.txt','rb') as fin:
-#   This will be reduced as well    
         for line in fin:
             hero_dire_dict[line.strip()]=0
             hero_dire_lh[line.strip()]=0;hero_dire_deny[line.strip()]=0
@@ -136,7 +143,7 @@ def callback():
     fin.close()
 
 
-#   Counting neutral kills, forest exploitation, next updates would be attached money value to neutral creatures killed
+
     #print hero_rad_index
     neutrals_index=[]
     fin=open('neutrals_index.txt','rb')
@@ -163,7 +170,7 @@ def callback():
     count_creep_dire=0
     count_tower_dmg_rad=0
     count_tower_dmg_dire=0
-#   Can further divde this to ranged and melle creep kills, but at this stage is not neccesary
+
     last_hit_dire=re.compile(r'.*?(Radiant Creep dies)\..*?:.(\w+)')
     last_hit_rad=re.compile(r'.*?(Dire Creep dies)\..*?:.(\w+).')
     tower_dmg=re.compile(r'deals.(\d+).damage.to.(\w+).(.*?).Tier.(\d+).Tower.*?Owner:.(\w+)')
@@ -207,7 +214,7 @@ def callback():
 
     fin.close()
 
-#   This regex will be tracking smoke pop counts, KDA for players and ward/sentry ward kills, some data will be used to estimate the players' participation score
+
     valid_kills=re.compile(r'\d+:\d+.\(\d+:\d+\)..(.*?).dies..Killer:.(\w+)')
 
     neutral_kills_rad=0;neutral_kills_dire=0
@@ -280,7 +287,7 @@ def callback():
     else:
         first_blood_time=dire_kill_time[0]
         first_blood_rad=0
-#   Damage can be further calculated as damage per second (i.e. DPS)
+
     hero_dps_pat=re.compile(r'\(\d+:\d+\)..(\w+).*?deals.(\d+).*?to.(\w+).*?')
     hero_hps_pat=re.compile(r'\(\d+:\d+\)..(\w+).*?heals.*?(\d+).*?to.(\w+).*?')
     hero_item_heal_pat=re.compile(r'\(\d+:\d+\)..(\w+).*?gets.*?(\w+).Heal')
@@ -303,8 +310,6 @@ def callback():
                 elif n.group(3) in hero_list_rad:
                     hero_rad_heal[n.group(3)]+=int(n.group(2))
             #Healed By using flask/bottle/tango
-            #Healing estimates includes item heals (wand, hod), skill heals (feast) and other heals (flask,bottle,tango)
-            #Again, HPS can be calculated
             if x!=None:
                 if x.group(1) in hero_list_dire and x.group(2)=="Tango":
                     hero_dire_tango[x.group(1)]+=1
@@ -333,17 +338,22 @@ def callback():
 #        key=str(key);val=str(val)
         rad_total_hero_damage+=int(val)
 
-#   Integrate all the stats I think it matters to one text file for both sides
     with open('hero_rad_skills.txt','w') as fou:
         for key,val in hero_rad_lh.items():
             key=str(key);val=str(val)
-            fou.write('<'+key+'>'+'<'+'LH/Denies/Neutrals: '+val+'/'+str(hero_rad_deny[key])+'/'+str(hero_rad_neutral[key])+'>'+'<'+'K/D/A: '+str(hero_rad_kills[key])+'/'+str(hero_rad_die[key])+str(hero_rad_assists[key])+'>'+'<'+'Damages: '+str(hero_rad_dict[key])+'>'+'<'+'Heals Received: '+str(hero_rad_heal[key]+hero_rad_tango[key]*115+hero_rad_flask[key]*400+hero_rad_bottle[key]*135)+'>'+'<'+'Smoke Participation: '+str(hero_rad_smoke_part[key])+'>'+'<'+'Ward Kills: '+str(hero_rad_ward_kill[key])+'>'+'<'+'Get Rune: '+str(hero_rad_rune_get[key])+'>'+'\n')
+            fou.write('<'+rad_name.strip('\'\'')+'>'+'<'+player_info[key]+'>'+'<'+key+'>'+'<'+'LH/Denies/Neutrals: '+val+'/'+str(hero_rad_deny[key])+'/'+str(hero_rad_neutral[key])+'>'+'<'+'K/D/A: '+str(hero_rad_kills[key])+'/'+str(hero_rad_die[key])+str(hero_rad_assists[key])+'>'+'<'+'Damages: '+str(hero_rad_dict[key])+'>'+'<'+'Heals Received: '+str(hero_rad_heal[key]+hero_rad_tango[key]*115+hero_rad_flask[key]*400+hero_rad_bottle[key]*135)+'>'+'<'+'Smoke Participation: '+str(hero_rad_smoke_part[key])+'>'+'<'+'Ward Kills: '+str(hero_rad_ward_kill[key])+'>'+'<'+'Get Rune: '+str(hero_rad_rune_get[key])+'>'+'\n')
     fou.close()
 
     with open('hero_dire_skills.txt','w') as fou:
         for key,val in hero_dire_lh.items():
             key=str(key);val=str(val)
-            fou.write('<'+key+'>'+'<'+'LH/Denies/Neutrals: '+val+'/'+str(hero_dire_deny[key])+'/'+str(hero_dire_neutral[key])+'>'+'<'+'K/D/A: '+str(hero_dire_kills[key])+'/'+str(hero_dire_die[key])+'/'+str(hero_dire_assists[key])+'>'+'<'+'Damages: '+str(hero_dire_dict[key])+'>'+'<'+'Heals Received: '+str(hero_dire_heal[key]+hero_dire_tango[key]*115+hero_dire_flask[key]*400+hero_dire_bottle[key]*135)+'>'+'<'+'Smoke Participation: '+str(hero_dire_smoke_part[key])+'>'+'<'+'Ward Kills: '+str(hero_dire_ward_kill[key])+'>'+'<'+'Get Rune: '+str(hero_dire_rune_get[key])+'>'+'\n')
+            fou.write('<'+dire_name.strip('\'\'')+'>'+'<'+player_info[key]+'>'+'<'+key+'>'+'<'+'LH/Denies/Neutrals: '+val+'/'+str(hero_dire_deny[key])+'/'+str(hero_dire_neutral[key])+'>'+'<'+'K/D/A: '+str(hero_dire_kills[key])+'/'+str(hero_dire_die[key])+'/'+str(hero_dire_assists[key])+'>'+'<'+'Damages: '+str(hero_dire_dict[key])+'>'+'<'+'Heals Received: '+str(hero_dire_heal[key]+hero_dire_tango[key]*115+hero_dire_flask[key]*400+hero_dire_bottle[key]*135)+'>'+'<'+'Smoke Participation: '+str(hero_dire_smoke_part[key])+'>'+'<'+'Ward Kills: '+str(hero_dire_ward_kill[key])+'>'+'<'+'Get Rune: '+str(hero_dire_rune_get[key])+'>'+'\n')
+    fou.close()
+
+    with open('other_info.txt','w') as fou:
+        fou.write('Match: '+rad_name.strip('\'\'')+' vs. '+dire_name.strip('\'\'')+'\n')
+        for item in banlist:
+            fou.write('bans: '+item+'\n')
     fou.close()
 
     for key,val in hero_rad_heal.items():
@@ -355,7 +365,7 @@ def callback():
         dire_total_heal+=hero_dire_total_heal
 
 
-#   Added some graph functions to the program, more graphs can be added
+
     fig = pyplot.figure(figsize=(10,2))
     ratio=float(dire_total_hero_damage)/float(rad_total_hero_damage)
 
@@ -386,14 +396,12 @@ def callback():
     cb2=mpl.colorbar.ColorbarBase(ax2,cmap=cmap,norm=norm2,boundaries=[0]+bounds+[dire_total_hero_damage],extend='both',spacing='propotional',orientation='horizontal')
     cb2.set_label('Dire Hero Damages Dealt')
     pyplot.show()
-    
-#   This is the csv file which will be used for machine learning problem
-    stat.writerow([matchid,hero_kills_rad,hero_kills_dire,rad_total_hero_damage,dire_total_hero_damage,rad_total_heal,dire_total_heal,first_blood_rad,count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,count_creep_dire_denies,smoke_counts_rad,smoke_counts_dire,glyph_rad_usage,glyph_dire_usage,count_tower_dmg_rad,count_tower_dmg_dire,neutral_kills_rad,neutral_kills_dire,ward_kills_rad,ward_kills_dire,hero_rad_index[0],hero_rad_index[1],hero_rad_index[2],hero_rad_index[3],hero_rad_index[4],hero_dire_index[0],hero_dire_index[1],hero_dire_index[2],hero_dire_index[3],hero_dire_index[4]])
+    stat.writerow([matchid,match_duration,radiant_win_bool,hero_kills_rad,hero_kills_dire,rad_total_hero_damage,dire_total_hero_damage,rad_total_heal,dire_total_heal,first_blood_rad,count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,count_creep_dire_denies,smoke_counts_rad,smoke_counts_dire,glyph_rad_usage,glyph_dire_usage,count_tower_dmg_rad,count_tower_dmg_dire,neutral_kills_rad,neutral_kills_dire,ward_kills_rad,ward_kills_dire,hero_rad_index[0],hero_rad_index[1],hero_rad_index[2],hero_rad_index[3],hero_rad_index[4],hero_dire_index[0],hero_dire_index[1],hero_dire_index[2],hero_dire_index[3],hero_dire_index[4]])
 #    Generate csv file for dps
 #    w = csv.writer(open("hero_dps.csv", "w"))
 #    for key, val in hero_rad_dict.items():
-#        w.writerow([keye, val])
-
+#        w.writerow([key, val])
+    return dire_total_hero_damage,rad_total_hero_damage,hero_rad_dict,hero_dire_dict
 
 
 def close_window():
