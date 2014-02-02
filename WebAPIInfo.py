@@ -23,8 +23,8 @@ class matchinfo:
 #matchid=475880380
 
 def getmatch(matchid):
-    #My API key
-    APIkey='AFD368B9F9928B7F3C732CED8B599DA1'
+    #My API key can't show it here
+    APIkey='XXXXXXXXXXXXXXXXXXXX'
     #Import matchid here
     userMainUrl='https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?match_id='+str(matchid)+'&key='+APIkey
     req=urllib2.Request(userMainUrl)
