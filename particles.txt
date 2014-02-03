@@ -109,3 +109,14 @@ razor_unstable_current,15
 razor_plasmafield,15
 razor_storm_lightning_strike,15
 nevermore_necro_souls,11
+tusk_ice_shards, 100
+tusk_snowball, 100
+skywrath_mage_ancient_seal_debuff, 101
+skywrath_mage_concussive_shot_slow_debuff, 101
+abaddon_frost_buff, 102
+abaddon_death_coil, 102
+abaddon_aphotic_shield, 102
+abaddon_borrowed_time_heal, 102
+elder_titan_ancestral_spirit_ambient, 103
+elder_titan_ancestral_spirit_buff, 103
+elder_titan_earth_splitter, 103
