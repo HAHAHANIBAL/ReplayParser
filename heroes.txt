@@ -98,3 +98,14 @@ npc_dota_hero_windrunner, Windrunner, 21
 npc_dota_hero_wisp, Wisp, 91
 npc_dota_hero_witch_doctor, Witch Doctor, 30
 npc_dota_hero_zuus, Zeus, 22
+npc_dota_hero_bristleback, Bristleback, 99
+npc_dota_hero_tusk, Tusk, 100
+npc_dota_hero_skywrath_mage, Skywrath Mage, 101
+npc_dota_hero_abaddon, Abaddon, 102
+npc_dota_hero_elder_titan, Elder Titan, 103
+npc_dota_hero_legion_commander, Legion Commander, 104
+npc_dota_hero_ember_spirit, Ember Spirit, 106
+npc_dota_hero_earth_spirit, Earth Spirit, 107
+npc_dota_hero_abyssal_underlord, Abyssal Underlord, 108
+npc_dota_hero_terrorblade, Terrorblade, 109
+npc_dota_hero_phoenix, Phoenix, 110
