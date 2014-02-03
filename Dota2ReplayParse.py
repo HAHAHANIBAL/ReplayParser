@@ -35,7 +35,12 @@ e2.focus_set()
 e.focus_set()
 
 
-ordered_fieldnames = OrderedDict([('Match_ID',None),('Match_Duration',None),('Radiant_Win',None),('Radiant_Hero_Kills',None),('Dire_Hero_Kills',None),('Radiant_Hero_Damages_Dealt',None),('Dire_Hero_Damages_Dealt',None),('Radiant_Hero_Healed',None),('Dire_Hero_Healed',None),('Radiant_FB_Bool',None),('Radiant_Creep_Kills',None),('Dire_Creep_Kills',None),('Radiant_Creep_Denies',None),('Dire_Creep_Denies',None),('Smoke_Counts_Radiant',None),('Smoke_Counts_Dire',None),('Glyph_Usage_Radiant',None),('Glyph_Usage_Dire',None),('Radiant_Tower_Damage',None),('Dire_Tower_Damage',None),('Rad_Neutrals_Farmed',None),('Dire_Neutrals_Farmed',None),('Radiant_Ward_Kills',None),('Dire_Ward_Kills',None),('Rad_Hero_1',None),('Rad_Hero_2',None),('Rad_Hero_3',None),('Rad_Hero_4',None),('Rad_Hero_5',None),('Dire_Hero_1',None),('Dire_Hero_2',None),('Dire_Hero_3',None),('Dire_Hero_4',None),('Dire_Hero_5',None)])
+ordered_fieldnames = OrderedDict([('Match_ID',None),('Match_Duration',None),('Radiant_Win',None),('Radiant_Hero_Kills',None),('Dire_Hero_Kills',None),('Radiant_Hero_Assists',None),('Dire_Hero_Assists',None),
+                                  ('Radiant_Hero_Damages_Dealt',None),('Dire_Hero_Damages_Dealt',None),('Radiant_Hero_Healed',None),('Dire_Hero_Healed',None),('Radiant_FB_Bool',None),
+                                  ('Radiant_Creep_Kills',None),('Dire_Creep_Kills',None),('Radiant_Creep_Denies',None),('Dire_Creep_Denies',None),('Smoke_Counts_Radiant',None),
+                                  ('Smoke_Counts_Dire',None),('Glyph_Usage_Radiant',None),('Glyph_Usage_Dire',None),('Radiant_Tower_Damage',None),('Dire_Tower_Damage',None),
+                                  ('Rad_Neutrals_Farmed',None),('Dire_Neutrals_Farmed',None),('Radiant_Ward_Kills',None),('Dire_Ward_Kills',None),('Rad_Hero_1',None),('Rad_Hero_2',None),
+                                  ('Rad_Hero_3',None),('Rad_Hero_4',None),('Rad_Hero_5',None),('Dire_Hero_1',None),('Dire_Hero_2',None),('Dire_Hero_3',None),('Dire_Hero_4',None),('Dire_Hero_5',None)])
 fout=open("count.csv","wb")
 stat=csv.DictWriter(fout,fieldnames=ordered_fieldnames)
 stat.writeheader()
@@ -45,6 +50,7 @@ stat=csv.writer(fout)
 
 def callback():
     matchid=int(e.get())
+    matchtime=int(e2.get())
 #   for matchid in range(475880380,475880380):
 #   matchid=475880380
     Fetch_info=WebAPIInfo.getmatch(matchid)
@@ -80,10 +86,11 @@ def callback():
             hero_list_rad.append(str(hero_side.search(line).group(1)))
         i=glyph_pat.search(line)
         if i!=None:
-            if i.group(2)=='Dire' and int(i.group(1))<16:
+            if i.group(2)=='Dire' and int(i.group(1))<matchtime:
                 glyph_dire_usage=glyph_dire_usage+1
-            elif i.group(2)=='Radiant' and int(i.group(1))<16:
+            elif i.group(2)=='Radiant' and int(i.group(1))<matchtime:
                 glyph_rad_usage=glyph_rad_usage+1
+    info.close()
 
 #    print hero_list_dire
     hero_rad.close()
@@ -153,13 +160,14 @@ def callback():
 
 
     rep=open(path,'rb')
-    rep_15=open('replay_15min.txt','w')
+    rep_15=open('replay_custom.txt','w')
     criteria=re.compile(r'.*? \((\d+).*?\)\. .*?')
 
     for line in rep:
         m=criteria.search(line)
-        if int(m.group(1)) < 16:
+        if int(m.group(1)) < matchtime:
             rep_15.write(line)
+
 
     rep.close()
     rep_15.close()
@@ -182,7 +190,7 @@ def callback():
     count_creep_rad_denies=0
     count_creep_dire_denies=0
 
-    with open("replay_15min.txt","rb") as fin:
+    with open("replay_custom.txt","rb") as fin:
         for line in fin:
             i=tower_dmg.search(line)
             if i!=None:
@@ -216,7 +224,7 @@ def callback():
 
 
     valid_kills=re.compile(r'\d+:\d+.\(\d+:\d+\)..(.*?).dies..Killer:.(\w+)')
-
+    valid_assists=re.compile(r'^\d+:\d+.\((\d+):\d+\).+\n..+\n.+\n.Assists:.?(.*)',re.MULTILINE)
     neutral_kills_rad=0;neutral_kills_dire=0
     ward_kills_dire=0;ward_kills_rad=0
     hero_kills_rad=0;hero_kills_dire=0
@@ -227,7 +235,7 @@ def callback():
     rune_rad=0;rune_dire=0
 #    smoke_rad_time=0;smoke_dire_time=0
     smoke_rad=[];smoke_dire=[]
-    with open("replay_15min.txt","rb") as fin:
+    with open("replay_custom.txt","rb") as fin:
         for line in fin:
             i=valid_kills.search(line)
             j=valid_kills_hero.search(line)
@@ -275,6 +283,23 @@ def callback():
                     rune_rad+=1
 
     fin.close()
+    dire_assists=0;rad_assists=0
+    with open(path2,'rb') as fin:
+        content=fin.read()
+        for match in valid_assists.finditer(content):
+            time, heroes=match.groups()
+            if int(time)<matchtime:
+                for key in hero_dire_assists:
+                    if key in str(heroes):
+                        hero_dire_assists[key]+=1
+                        dire_assists+=1
+                for key in hero_rad_assists:
+                    if key in str(heroes):
+                        hero_rad_assists[key]+=1
+                        rad_assists+=1
+    fin.close()
+
+
     smoke_counts_dire=len(set(smoke_dire))
     smoke_counts_rad=len(set(smoke_rad))
     smoke_dire_unique_time=list(set(smoke_dire))[0:3]
@@ -292,7 +317,7 @@ def callback():
     hero_hps_pat=re.compile(r'\(\d+:\d+\)..(\w+).*?heals.*?(\d+).*?to.(\w+).*?')
     hero_item_heal_pat=re.compile(r'\(\d+:\d+\)..(\w+).*?gets.*?(\w+).Heal')
 
-    with open("replay_15min.txt","rb") as fin:
+    with open("replay_custom.txt","rb") as fin:
         for line in fin:
             l=hero_dps_pat.search(line)
             n=hero_hps_pat.search(line)
@@ -341,7 +366,7 @@ def callback():
     with open('hero_rad_skills.txt','w') as fou:
         for key,val in hero_rad_lh.items():
             key=str(key);val=str(val)
-            fou.write('<'+rad_name.strip('\'\'')+'>'+'<'+player_info[key]+'>'+'<'+key+'>'+'<'+'LH/Denies/Neutrals: '+val+'/'+str(hero_rad_deny[key])+'/'+str(hero_rad_neutral[key])+'>'+'<'+'K/D/A: '+str(hero_rad_kills[key])+'/'+str(hero_rad_die[key])+str(hero_rad_assists[key])+'>'+'<'+'Damages: '+str(hero_rad_dict[key])+'>'+'<'+'Heals Received: '+str(hero_rad_heal[key]+hero_rad_tango[key]*115+hero_rad_flask[key]*400+hero_rad_bottle[key]*135)+'>'+'<'+'Smoke Participation: '+str(hero_rad_smoke_part[key])+'>'+'<'+'Ward Kills: '+str(hero_rad_ward_kill[key])+'>'+'<'+'Get Rune: '+str(hero_rad_rune_get[key])+'>'+'\n')
+            fou.write('<'+rad_name.strip('\'\'')+'>'+'<'+player_info[key]+'>'+'<'+key+'>'+'<'+'LH/Denies/Neutrals: '+val+'/'+str(hero_rad_deny[key])+'/'+str(hero_rad_neutral[key])+'>'+'<'+'K/D/A: '+str(hero_rad_kills[key])+'/'+str(hero_rad_die[key])+'/'+str(hero_rad_assists[key])+'>'+'<'+'Damages: '+str(hero_rad_dict[key])+'>'+'<'+'Heals Received: '+str(hero_rad_heal[key]+hero_rad_tango[key]*115+hero_rad_flask[key]*400+hero_rad_bottle[key]*135)+'>'+'<'+'Smoke Participation: '+str(hero_rad_smoke_part[key])+'>'+'<'+'Ward Kills: '+str(hero_rad_ward_kill[key])+'>'+'<'+'Get Rune: '+str(hero_rad_rune_get[key])+'>'+'\n')
     fou.close()
 
     with open('hero_dire_skills.txt','w') as fou:
@@ -396,7 +421,12 @@ def callback():
     cb2=mpl.colorbar.ColorbarBase(ax2,cmap=cmap,norm=norm2,boundaries=[0]+bounds+[dire_total_hero_damage],extend='both',spacing='propotional',orientation='horizontal')
     cb2.set_label('Dire Hero Damages Dealt')
     pyplot.show()
-    stat.writerow([matchid,match_duration,radiant_win_bool,hero_kills_rad,hero_kills_dire,rad_total_hero_damage,dire_total_hero_damage,rad_total_heal,dire_total_heal,first_blood_rad,count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,count_creep_dire_denies,smoke_counts_rad,smoke_counts_dire,glyph_rad_usage,glyph_dire_usage,count_tower_dmg_rad,count_tower_dmg_dire,neutral_kills_rad,neutral_kills_dire,ward_kills_rad,ward_kills_dire,hero_rad_index[0],hero_rad_index[1],hero_rad_index[2],hero_rad_index[3],hero_rad_index[4],hero_dire_index[0],hero_dire_index[1],hero_dire_index[2],hero_dire_index[3],hero_dire_index[4]])
+    stat.writerow([matchid,match_duration,radiant_win_bool,hero_kills_rad,hero_kills_dire,rad_assists,dire_assists,rad_total_hero_damage,
+                   dire_total_hero_damage,rad_total_heal,dire_total_heal,first_blood_rad,count_creep_rad_kills,count_creep_dire_kills,count_creep_rad_denies,
+                   count_creep_dire_denies,smoke_counts_rad,smoke_counts_dire,glyph_rad_usage,glyph_dire_usage,count_tower_dmg_rad,count_tower_dmg_dire,
+                   neutral_kills_rad,neutral_kills_dire,ward_kills_rad,ward_kills_dire,
+                   hero_rad_index[0],hero_rad_index[1],hero_rad_index[2],hero_rad_index[3],hero_rad_index[4],
+                   hero_dire_index[0],hero_dire_index[1],hero_dire_index[2],hero_dire_index[3],hero_dire_index[4]])
 #    Generate csv file for dps
 #    w = csv.writer(open("hero_dps.csv", "w"))
 #    for key, val in hero_rad_dict.items():
